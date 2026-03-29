@@ -113,6 +113,10 @@ public class PaymentService {
                 .collect(Collectors.toList());
     }
 
+    public String getStripePublishableKey() {
+        return stripeClientAdapter.getPublishableKey();
+    }
+
     // ─── Private helpers ─────────────────────────────────────────
 
     private void handleCheckoutSessionCompleted(Event event) {

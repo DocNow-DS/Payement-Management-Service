@@ -14,6 +14,7 @@
 |--------|--------|------|-------------|
 | `POST` | `/api/v1/payments/checkout-session` | JWT | Create a Stripe Checkout Session |
 | `POST` | `/api/v1/payments/webhook` | Stripe Sig | Receive Stripe webhook events |
+| `GET` | `/api/v1/payments/stripe-config` | Public | Get Stripe publishable key for frontend |
 | `GET` | `/api/v1/payments/{paymentId}` | JWT | Get payment by internal ID |
 | `GET` | `/api/v1/payments/consultation/{consultationId}` | JWT | Get payment by consultation ID |
 | `GET` | `/api/v1/payments/patient/my-payments` | JWT | Get all payments for authenticated patient |
@@ -47,6 +48,7 @@ Authorization: Bearer <jwt_token>
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `STRIPE_SECRET_KEY` | `sk_test_...` | Stripe secret API key |
+| `STRIPE_PUBLISHABLE_KEY` | `pk_test_...` | Stripe publishable key used by frontend |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe webhook signing secret |
 | `JWT_SECRET` | `dev-secret-change-me` | Shared JWT signing secret |
 | `APPOINTMENT_SERVICE_URL` | `http://localhost:8080` | Appointment service URL |
@@ -57,6 +59,7 @@ Authorization: Bearer <jwt_token>
 ### 1. Set Stripe keys
 ```bash
 set STRIPE_SECRET_KEY=sk_test_your_key_here
+set STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 set STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
 ```
 

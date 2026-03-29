@@ -1,0 +1,287 @@
+{
+  "info": {
+    "_postman_id": "f58bf9d9-89e7-4b5f-b7f3-5a17149b9f9f",
+    "name": "Payment Management Service - Stripe",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for Payment Management Service Stripe checkout, payment queries, and webhook testing."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "jwtToken",
+      "value": ""
+    },
+    {
+      "key": "consultationId",
+      "value": "cons_123"
+    },
+    {
+      "key": "paymentId",
+      "value": ""
+    },
+    {
+      "key": "customerEmail",
+      "value": "user@example.com"
+    },
+    {
+      "key": "amountLKR",
+      "value": "5000"
+    },
+    {
+      "key": "successUrl",
+      "value": "http://localhost:5173/payment/success"
+    },
+    {
+      "key": "cancelUrl",
+      "value": "http://localhost:5173/payment/cancel"
+    },
+    {
+      "key": "stripeSignature",
+      "value": ""
+    },
+    {
+      "key": "stripeSessionId",
+      "value": ""
+    },
+    {
+      "key": "checkoutUrl",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Get Stripe Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/stripe-config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "stripe-config"
+              ]
+            },
+            "description": "Returns publishableKey for frontend Stripe initialization."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Checkout Flow",
+      "item": [
+        {
+          "name": "Create Checkout Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.sessionId) {",
+                  "    pm.collectionVariables.set('stripeSessionId', jsonData.sessionId);",
+                  "}",
+                  "if (jsonData.checkoutUrl) {",
+                  "    pm.collectionVariables.set('checkoutUrl', jsonData.checkoutUrl);",
+                  "}",
+                  "",
+                  "console.log('Checkout URL:', jsonData.checkoutUrl);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountLKR\": {{amountLKR}},\n  \"currency\": \"lkr\",\n  \"consultationId\": \"{{consultationId}}\",\n  \"customerEmail\": \"{{customerEmail}}\",\n  \"successUrl\": \"{{successUrl}}\",\n  \"cancelUrl\": \"{{cancelUrl}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/checkout-session",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "checkout-session"
+              ]
+            },
+            "description": "Creates Stripe checkout session. Requires patient JWT token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payment Queries (JWT)",
+      "item": [
+        {
+          "name": "Get My Payments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/patient/my-payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "patient",
+                "my-payments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment By Consultation Id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/consultation/{{consultationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "consultation",
+                "{{consultationId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment By Payment Id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwtToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/{{paymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "{{paymentId}}"
+              ]
+            },
+            "description": "Set paymentId variable after you create a payment and fetch it from my-payments response."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhook (Advanced)",
+      "item": [
+        {
+          "name": "Webhook Endpoint (Manual Test)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Stripe-Signature",
+                "value": "{{stripeSignature}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_test_webhook\",\n  \"object\": \"event\",\n  \"type\": \"checkout.session.completed\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"{{stripeSessionId}}\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payments/webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "webhook"
+              ]
+            },
+            "description": "This endpoint requires a valid Stripe signature. Prefer stripe listen + stripe trigger for realistic testing."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

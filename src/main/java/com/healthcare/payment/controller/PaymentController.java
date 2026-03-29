@@ -92,4 +92,13 @@ public class PaymentController {
         List<PaymentResponse> payments = paymentService.getPaymentsByPatientId(patientId);
         return ResponseEntity.ok(payments);
     }
+
+    /**
+     * GET /api/v1/payments/stripe-config
+     * Returns Stripe frontend configuration.
+     */
+    @GetMapping("/stripe-config")
+    public ResponseEntity<Map<String, String>> getStripeConfig() {
+        return ResponseEntity.ok(Map.of("publishableKey", paymentService.getStripePublishableKey()));
+    }
 }

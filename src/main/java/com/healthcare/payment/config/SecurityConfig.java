@@ -28,6 +28,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Stripe webhook must be unauthenticated (Stripe can't send JWTs)
                         .requestMatchers("/api/v1/payments/webhook").permitAll()
+                    // Publishable key is safe to expose to frontend
+                    .requestMatchers("/api/v1/payments/stripe-config").permitAll()
                         // Actuator health endpoints
                         .requestMatchers("/actuator/**").permitAll()
                         // All other payment endpoints require authentication
