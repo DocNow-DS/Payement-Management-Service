@@ -4,22 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class CheckoutRequest {
 
     @NotNull(message = "Amount is required")
     @Min(value = 1, message = "Amount must be at least 1")
     private Long amountLKR;
 
-    @Builder.Default
     private String currency = "lkr";
 
     @NotBlank(message = "Consultation ID is required")
@@ -34,4 +24,69 @@ public class CheckoutRequest {
 
     @NotBlank(message = "Cancel URL is required")
     private String cancelUrl;
+
+    public CheckoutRequest() {
+    }
+
+    public CheckoutRequest(Long amountLKR,
+                           String currency,
+                           String consultationId,
+                           String customerEmail,
+                           String successUrl,
+                           String cancelUrl) {
+        this.amountLKR = amountLKR;
+        this.currency = currency;
+        this.consultationId = consultationId;
+        this.customerEmail = customerEmail;
+        this.successUrl = successUrl;
+        this.cancelUrl = cancelUrl;
+    }
+
+    public Long getAmountLKR() {
+        return amountLKR;
+    }
+
+    public void setAmountLKR(Long amountLKR) {
+        this.amountLKR = amountLKR;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getConsultationId() {
+        return consultationId;
+    }
+
+    public void setConsultationId(String consultationId) {
+        this.consultationId = consultationId;
+    }
+
+    public String getCustomerEmail() {
+        return customerEmail;
+    }
+
+    public void setCustomerEmail(String customerEmail) {
+        this.customerEmail = customerEmail;
+    }
+
+    public String getSuccessUrl() {
+        return successUrl;
+    }
+
+    public void setSuccessUrl(String successUrl) {
+        this.successUrl = successUrl;
+    }
+
+    public String getCancelUrl() {
+        return cancelUrl;
+    }
+
+    public void setCancelUrl(String cancelUrl) {
+        this.cancelUrl = cancelUrl;
+    }
 }
