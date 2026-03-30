@@ -9,7 +9,6 @@ com\healthcare\payment\repository\PaymentSessionRepository.class
 com\healthcare\payment\dto\PaymentResponse.class
 com\healthcare\payment\service\PaymentService.class
 com\healthcare\payment\model\PaymentSession$PaymentSessionBuilder.class
-com\healthcare\payment\dto\CheckoutRequest$CheckoutRequestBuilder.class
 com\healthcare\payment\exception\GlobalExceptionHandler.class
 com\healthcare\payment\dto\CheckoutResponse.class
 com\healthcare\payment\model\PaymentSession.class
