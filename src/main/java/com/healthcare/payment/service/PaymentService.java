@@ -104,6 +104,15 @@ public class PaymentService {
     }
 
     /**
+     * Retrieves a payment by its Stripe Checkout session ID.
+     */
+    public PaymentResponse getPaymentByStripeSessionId(String stripeSessionId) {
+        PaymentSession session = paymentSessionRepository.findByStripeSessionId(stripeSessionId)
+                .orElseThrow(() -> new RuntimeException("Payment not found for Stripe session: " + stripeSessionId));
+        return mapToResponse(session);
+    }
+
+    /**
      * Retrieves all payments for a specific patient.
      */
     public List<PaymentResponse> getPaymentsByPatientId(String patientId) {

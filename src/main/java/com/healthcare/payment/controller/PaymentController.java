@@ -87,6 +87,16 @@ public class PaymentController {
     }
 
     /**
+     * GET /api/v1/payments/session/{sessionId}
+     * Retrieves a payment session by Stripe checkout session ID.
+     */
+    @GetMapping("/session/{sessionId}")
+    public ResponseEntity<PaymentResponse> getPaymentBySession(@PathVariable String sessionId) {
+        PaymentResponse response = paymentService.getPaymentByStripeSessionId(sessionId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * GET /api/v1/payments/patient/my-payments
      * Retrieves all payments for the authenticated patient.
      */
