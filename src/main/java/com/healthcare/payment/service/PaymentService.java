@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PaymentService {
 
+    private static final long MIN_CHECKOUT_LKR = 200L;
+
     private final PaymentSessionRepository paymentSessionRepository;
     private final StripeClientAdapter stripeClientAdapter;
 
@@ -33,8 +35,13 @@ public class PaymentService {
      * Creates a Stripe Checkout Session and persists the payment record.
      */
     public CheckoutResponse createCheckoutSession(CheckoutRequest request, String patientId) throws StripeException {
+        long requestedAmount = request.getAmountLKR() == null ? 0L : request.getAmountLKR();
+        if (requestedAmount < MIN_CHECKOUT_LKR) {
+            throw new RuntimeException("Minimum payable amount is " + MIN_CHECKOUT_LKR + " LKR for gateway checkout");
+        }
+
         // Convert LKR to cents (1 LKR = 100 cents)
-        long amountCents = request.getAmountLKR() * 100;
+        long amountCents = requestedAmount * 100;
 
         // Create Stripe Checkout Session
         Session stripeSession = stripeClientAdapter.createCheckoutSession(
@@ -110,6 +117,33 @@ public class PaymentService {
         PaymentSession session = paymentSessionRepository.findByStripeSessionId(stripeSessionId)
                 .orElseThrow(() -> new RuntimeException("Payment not found for Stripe session: " + stripeSessionId));
         return mapToResponse(session);
+    }
+
+    /**
+     * Confirms and synchronizes payment state from Stripe checkout session.
+     * Useful right after redirect when webhook delivery is delayed.
+     */
+    public PaymentResponse confirmPaymentByStripeSessionId(String stripeSessionId, String patientId) throws StripeException {
+        PaymentSession session = paymentSessionRepository.findByStripeSessionId(stripeSessionId)
+                .orElseThrow(() -> new RuntimeException("Payment not found for Stripe session: " + stripeSessionId));
+
+        if (patientId != null && !patientId.isBlank() && !patientId.equals(session.getPatientId())) {
+            throw new RuntimeException("Access denied for this payment session");
+        }
+
+        Session stripeSession = stripeClientAdapter.retrieveSession(stripeSessionId);
+        String stripePaymentStatus = stripeSession.getPaymentStatus();
+        String stripeSessionStatus = stripeSession.getStatus();
+
+        if ("paid".equalsIgnoreCase(stripePaymentStatus)) {
+            session.setStatus(PaymentStatus.COMPLETED);
+            session.setStripePaymentIntentId(stripeSession.getPaymentIntent());
+        } else if ("expired".equalsIgnoreCase(stripeSessionStatus)) {
+            session.setStatus(PaymentStatus.EXPIRED);
+        }
+
+        PaymentSession saved = paymentSessionRepository.save(session);
+        return mapToResponse(saved);
     }
 
     /**

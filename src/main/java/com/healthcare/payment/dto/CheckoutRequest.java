@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public class CheckoutRequest {
 
     @NotNull(message = "Amount is required")
-    @Min(value = 1, message = "Amount must be at least 1")
+    @Min(value = 200, message = "Amount must be at least 200 LKR")
     private Long amountLKR;
 
     private String currency = "lkr";
