@@ -11,19 +11,27 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 @Component
 public class JwtUtil {
 
-    private final SecretKey signingKey;
+    private final List<SecretKey> signingKeys;
     private final long expirationMs;
 
     public JwtUtil(
             @Value("${jwt.secret}") String secret,
+            @Value("${jwt.fallback-secret:}") String fallbackSecret,
             @Value("${jwt.expiration-ms}") long expirationMs
     ) {
-        this.signingKey = buildSigningKey(secret);
+        List<SecretKey> keys = new ArrayList<>();
+        keys.add(buildSigningKey(secret));
+        if (fallbackSecret != null && !fallbackSecret.trim().isEmpty()) {
+            keys.add(buildSigningKey(fallbackSecret));
+        }
+        this.signingKeys = List.copyOf(keys);
         this.expirationMs = expirationMs;
     }
 
@@ -57,11 +65,18 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(signingKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        for (SecretKey key : signingKeys) {
+            try {
+                return Jwts.parser()
+                        .verifyWith(key)
+                        .build()
+                        .parseSignedClaims(token)
+                        .getPayload();
+            } catch (Exception ignored) {
+                // Try next key.
+            }
+        }
+        throw new IllegalArgumentException("JWT signature validation failed for all configured keys");
     }
 
     private static SecretKey buildSigningKey(String secret) {
