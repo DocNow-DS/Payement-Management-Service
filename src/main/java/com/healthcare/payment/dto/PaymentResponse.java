@@ -19,6 +19,7 @@ public class PaymentResponse {
     private String stripePaymentIntentId;
     private String consultationId;
     private String patientId;
+    private String doctorId;
     private String customerEmail;
     private Long amountCents;
     private String currency;

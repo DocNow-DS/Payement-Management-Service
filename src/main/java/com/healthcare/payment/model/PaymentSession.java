@@ -33,6 +33,9 @@ public class PaymentSession {
     @Indexed
     private String patientId;
 
+    @Indexed
+    private String doctorId;
+
     private String customerEmail;
 
     private Long amountCents;
