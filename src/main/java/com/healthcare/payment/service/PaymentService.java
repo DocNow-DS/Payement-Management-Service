@@ -1,5 +1,6 @@
 package com.healthcare.payment.service;
 
+import com.healthcare.payment.client.NotificationServiceClient;
 import com.healthcare.payment.dto.CheckoutRequest;
 import com.healthcare.payment.dto.CheckoutResponse;
 import com.healthcare.payment.dto.PaymentResponse;
@@ -33,6 +34,7 @@ public class PaymentService {
     private final PaymentSessionRepository paymentSessionRepository;
     private final StripeClientAdapter stripeClientAdapter;
     private final RestTemplate restTemplate;
+    private final NotificationServiceClient notificationServiceClient;
 
     @Value("${doctor.service.url:http://localhost:8082}")
     private String doctorServiceUrl;
@@ -63,6 +65,7 @@ public class PaymentService {
         PaymentSession paymentSession = PaymentSession.builder()
                 .stripeSessionId(stripeSession.getId())
                 .consultationId(request.getConsultationId())
+                .doctorId(request.getDoctorId())
                 .patientId(patientId)
                 .customerEmail(request.getCustomerEmail())
                 .amountCents(amountCents)
@@ -159,6 +162,7 @@ public class PaymentService {
         // Notify doctor service that related care-plan/consultation is paid
         if (saved.getStatus() == PaymentStatus.COMPLETED) {
             notifyDoctorServiceAboutPayment(saved);
+            sendPaymentNotificationToDoctor(saved);
         }
 
         return mapToResponse(saved);
@@ -201,8 +205,9 @@ public class PaymentService {
                     log.info("Payment COMPLETED for consultation: {} with intent: {}",
                             paymentSession.getConsultationId(), paymentIntentId);
 
-                    // Notify doctor service
+                    // Notify doctor service and send notification
                     notifyDoctorServiceAboutPayment(paymentSession);
+                    sendPaymentNotificationToDoctor(paymentSession);
                 } else {
                     log.warn("Webhook: payment_status is not 'paid', status={}", paymentStatus);
                 }
@@ -228,6 +233,36 @@ public class PaymentService {
             }
         } catch (Exception e) {
             log.error("Unexpected error notifying doctor service about payment: {}", e.getMessage(), e);
+        }
+    }
+
+    private void sendPaymentNotificationToDoctor(PaymentSession paymentSession) {
+        try {
+            String doctorId = paymentSession.getDoctorId();
+            String patientId = paymentSession.getPatientId();
+            String paymentId = paymentSession.getId();
+            String consultationId = paymentSession.getConsultationId();
+            Long amountCents = paymentSession.getAmountCents();
+            String currency = paymentSession.getCurrency();
+
+            if (doctorId != null && !doctorId.isBlank()) {
+                // For webhook calls, we don't have a token, so we'll pass null
+                // The notification service should handle this gracefully
+                notificationServiceClient.sendPaymentNotification(
+                    patientId,
+                    doctorId,
+                    paymentId,
+                    consultationId,
+                    amountCents,
+                    currency,
+                    null
+                );
+                log.info("Successfully sent payment notification to doctor: {} for payment: {}", doctorId, paymentId);
+            } else {
+                log.warn("Payment session {} has no doctorId, skipping payment notification", paymentSession.getId());
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error sending payment notification to doctor: {}", e.getMessage(), e);
         }
     }
 
@@ -264,6 +299,7 @@ public class PaymentService {
                 .stripePaymentIntentId(session.getStripePaymentIntentId())
                 .consultationId(session.getConsultationId())
                 .patientId(session.getPatientId())
+                .doctorId(session.getDoctorId())
                 .customerEmail(session.getCustomerEmail())
                 .amountCents(session.getAmountCents())
                 .currency(session.getCurrency())

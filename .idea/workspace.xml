@@ -5,21 +5,57 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="89035cbd-ea72-49e2-a245-3de823a90963" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.classpath" beforeDir="false" afterPath="$PROJECT_DIR$/.classpath" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.factorypath" beforeDir="false" afterPath="$PROJECT_DIR$/.factorypath" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/healthcare/payment/PaymentManagementApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/healthcare/payment/PaymentManagementApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/MANIFEST.MF" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/maven/com.healthcare/payment-management-service/pom.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/META-INF/maven/com.healthcare/payment-management-service/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/PaymentManagementApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/PaymentManagementApplication.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/config/SecurityConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/config/SecurityConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/config/WebConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/config/WebConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/CheckoutRequest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/CheckoutRequest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/CheckoutResponse$CheckoutResponseBuilder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/CheckoutResponse$CheckoutResponseBuilder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/CheckoutResponse.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/CheckoutResponse.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/PaymentResponse$PaymentResponseBuilder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/PaymentResponse$PaymentResponseBuilder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/PaymentResponse.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/dto/PaymentResponse.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/exception/GlobalExceptionHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/exception/GlobalExceptionHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/model/PaymentSession$PaymentSessionBuilder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/model/PaymentSession$PaymentSessionBuilder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/model/PaymentSession.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/model/PaymentSession.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/security/JwtAuthenticationFilter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/security/JwtAuthenticationFilter.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/security/JwtUtil.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/security/JwtUtil.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/service/PaymentService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/service/PaymentService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/healthcare/payment/stripe/StripeClientAdapter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/healthcare/payment/stripe/StripeClientAdapter.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_D:/3rd Year/sem 2/DS project/Payement-Management-Service" value="3BqPfAe6qzNp2bhBjf02c04UImU" />
+    </persistenceIdMap>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "LaSan99"
+  }
 }]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/DocNow-DS/Payement-Management-Service.git",
+    "accountId": "2d9d2370-3df8-4e7f-95d7-81fc2d02851c"
+  }
+}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="3BqPfAe6qzNp2bhBjf02c04UImU" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -27,7 +63,9 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Application.PaymentManagementApplication.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "dev",
     "kotlin-language-version-configured": "true"
   }
@@ -42,5 +80,13 @@
       <updated>1775213730357</updated>
     </task>
     <servers />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>
