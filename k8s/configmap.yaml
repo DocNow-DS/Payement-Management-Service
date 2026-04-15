@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  namespace: healthcare
+data:
+  SERVER_PORT: "8085"
+  SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/healthcare-payments"
+  APPOINTMENT_SERVICE_URL: "http://appointment-service:8080"
+  DOCTOR_SERVICE_URL: "http://doctor-service:8082"
