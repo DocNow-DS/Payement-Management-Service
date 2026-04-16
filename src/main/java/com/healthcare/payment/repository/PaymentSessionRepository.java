@@ -15,4 +15,6 @@ public interface PaymentSessionRepository extends MongoRepository<PaymentSession
     Optional<PaymentSession> findByConsultationId(String consultationId);
 
     List<PaymentSession> findByPatientIdOrderByCreatedAtDesc(String patientId);
+
+    List<PaymentSession> findAllByOrderByCreatedAtDesc();
 }
