@@ -120,6 +120,16 @@ public class PaymentController {
     }
 
     /**
+     * GET /api/v1/payments/admin/all
+     * Retrieves all payment records for admin transaction history.
+     */
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<PaymentResponse>> getAllPayments() {
+        List<PaymentResponse> payments = paymentService.getAllPayments();
+        return ResponseEntity.ok(payments);
+    }
+
+    /**
      * GET /api/v1/payments/stripe-config
      * Returns Stripe frontend configuration.
      */

@@ -178,6 +178,16 @@ public class PaymentService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves all payments for admin analytics/history views.
+     */
+    public List<PaymentResponse> getAllPayments() {
+        return paymentSessionRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     public String getStripePublishableKey() {
         return stripeClientAdapter.getPublishableKey();
     }
