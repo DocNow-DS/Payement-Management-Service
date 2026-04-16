@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public class CheckoutRequest {
 
     @NotNull(message = "Amount is required")
-    @Min(value = 1, message = "Amount must be at least 1")
+    @Min(value = 200, message = "Amount must be at least 200 LKR")
     private Long amountLKR;
 
     private String currency = "lkr";
@@ -18,6 +18,9 @@ public class CheckoutRequest {
     @NotBlank(message = "Customer email is required")
     @Email(message = "Invalid email format")
     private String customerEmail;
+
+    @NotBlank(message = "Doctor ID is required")
+    private String doctorId;
 
     @NotBlank(message = "Success URL is required")
     private String successUrl;
@@ -31,12 +34,14 @@ public class CheckoutRequest {
     public CheckoutRequest(Long amountLKR,
                            String currency,
                            String consultationId,
+                           String doctorId,
                            String customerEmail,
                            String successUrl,
                            String cancelUrl) {
         this.amountLKR = amountLKR;
         this.currency = currency;
         this.consultationId = consultationId;
+        this.doctorId = doctorId;
         this.customerEmail = customerEmail;
         this.successUrl = successUrl;
         this.cancelUrl = cancelUrl;
@@ -64,6 +69,14 @@ public class CheckoutRequest {
 
     public void setConsultationId(String consultationId) {
         this.consultationId = consultationId;
+    }
+
+    public String getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(String doctorId) {
+        this.doctorId = doctorId;
     }
 
     public String getCustomerEmail() {

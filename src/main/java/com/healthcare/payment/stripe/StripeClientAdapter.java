@@ -44,11 +44,27 @@ public class StripeClientAdapter {
             String cancelUrl
     ) throws StripeException {
 
+        // Ensure we add the session_id placeholder only once.
+        String successUrlWithSession = successUrl;
+        if (successUrl != null && !successUrl.contains("{CHECKOUT_SESSION_ID}") && !successUrl.contains("session_id=")) {
+            if (successUrl.contains("?")) {
+                successUrlWithSession = successUrl + "&session_id={CHECKOUT_SESSION_ID}";
+            } else {
+                successUrlWithSession = successUrl + "?session_id={CHECKOUT_SESSION_ID}";
+            }
+        }
+
+        SessionCreateParams.PaymentIntentData paymentIntentData = SessionCreateParams.PaymentIntentData.builder()
+                .setDescription("Healthcare consultation payment: " + consultationId)
+                .setReceiptEmail(customerEmail)
+                .build();
+
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setCustomerEmail(customerEmail)
                 .setClientReferenceId(consultationId)
-                .setSuccessUrl(successUrl + "?session_id={CHECKOUT_SESSION_ID}")
+                .setPaymentIntentData(paymentIntentData)
+                .setSuccessUrl(successUrlWithSession)
                 .setCancelUrl(cancelUrl)
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()

@@ -1,5 +1,6 @@
 package com.healthcare.payment.service;
 
+import com.healthcare.payment.client.NotificationServiceClient;
 import com.healthcare.payment.dto.CheckoutRequest;
 import com.healthcare.payment.dto.CheckoutResponse;
 import com.healthcare.payment.dto.PaymentResponse;
@@ -14,6 +15,8 @@ import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -26,15 +29,27 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PaymentService {
 
+    private static final long MIN_CHECKOUT_LKR = 200L;
+
     private final PaymentSessionRepository paymentSessionRepository;
     private final StripeClientAdapter stripeClientAdapter;
+    private final RestTemplate restTemplate;
+    private final NotificationServiceClient notificationServiceClient;
+
+    @Value("${doctor.service.url:http://localhost:8082}")
+    private String doctorServiceUrl;
 
     /**
      * Creates a Stripe Checkout Session and persists the payment record.
      */
     public CheckoutResponse createCheckoutSession(CheckoutRequest request, String patientId) throws StripeException {
+        long requestedAmount = request.getAmountLKR() == null ? 0L : request.getAmountLKR();
+        if (requestedAmount < MIN_CHECKOUT_LKR) {
+            throw new RuntimeException("Minimum payable amount is " + MIN_CHECKOUT_LKR + " LKR for gateway checkout");
+        }
+
         // Convert LKR to cents (1 LKR = 100 cents)
-        long amountCents = request.getAmountLKR() * 100;
+        long amountCents = requestedAmount * 100;
 
         // Create Stripe Checkout Session
         Session stripeSession = stripeClientAdapter.createCheckoutSession(
@@ -50,6 +65,7 @@ public class PaymentService {
         PaymentSession paymentSession = PaymentSession.builder()
                 .stripeSessionId(stripeSession.getId())
                 .consultationId(request.getConsultationId())
+                .doctorId(request.getDoctorId())
                 .patientId(patientId)
                 .customerEmail(request.getCustomerEmail())
                 .amountCents(amountCents)
@@ -113,6 +129,46 @@ public class PaymentService {
     }
 
     /**
+     * Confirms and synchronizes payment state from Stripe checkout session.
+     * Useful right after redirect when webhook delivery is delayed.
+     */
+    public PaymentResponse confirmPaymentByStripeSessionId(String stripeSessionId, String patientId) throws StripeException {
+        PaymentSession session = paymentSessionRepository.findByStripeSessionId(stripeSessionId)
+                .orElseThrow(() -> new RuntimeException("Payment not found for Stripe session: " + stripeSessionId));
+
+        if (patientId != null && !patientId.isBlank() && !patientId.equals(session.getPatientId())) {
+            throw new RuntimeException("Access denied for this payment session");
+        }
+
+        Session stripeSession = stripeClientAdapter.retrieveSession(stripeSessionId);
+        String stripePaymentStatus = stripeSession.getPaymentStatus();
+        String stripeSessionStatus = stripeSession.getStatus();
+        String paymentIntentId = stripeSession.getPaymentIntent();
+
+        log.info("Confirm endpoint: Session {} has payment_status={}, session_status={}, intent={}",
+                stripeSessionId, stripePaymentStatus, stripeSessionStatus, paymentIntentId);
+
+        if ("paid".equalsIgnoreCase(stripePaymentStatus)) {
+            session.setStatus(PaymentStatus.COMPLETED);
+            if (paymentIntentId != null && !paymentIntentId.isBlank()) {
+                session.setStripePaymentIntentId(paymentIntentId);
+            }
+        } else if ("expired".equalsIgnoreCase(stripeSessionStatus)) {
+            session.setStatus(PaymentStatus.EXPIRED);
+        }
+
+        PaymentSession saved = paymentSessionRepository.save(session);
+
+        // Notify doctor service that related care-plan/consultation is paid
+        if (saved.getStatus() == PaymentStatus.COMPLETED) {
+            notifyDoctorServiceAboutPayment(saved);
+            sendPaymentNotificationToDoctor(saved);
+        }
+
+        return mapToResponse(saved);
+    }
+
+    /**
      * Retrieves all payments for a specific patient.
      */
     public List<PaymentResponse> getPaymentsByPatientId(String patientId) {
@@ -132,17 +188,81 @@ public class PaymentService {
         Optional<StripeObject> stripeObject = extractStripeObject(event);
         if (stripeObject.isPresent() && stripeObject.get() instanceof Session session) {
             String stripeSessionId = session.getId();
+            String paymentStatus = session.getPaymentStatus();
             String paymentIntentId = session.getPaymentIntent();
 
-            paymentSessionRepository.findByStripeSessionId(stripeSessionId).ifPresent(paymentSession -> {
-                paymentSession.setStatus(PaymentStatus.COMPLETED);
-                paymentSession.setStripePaymentIntentId(paymentIntentId);
-                paymentSessionRepository.save(paymentSession);
-                log.info("Payment COMPLETED for consultation: {}", paymentSession.getConsultationId());
+            log.info("Webhook: Session {} has payment_status={}, payment_intent={}",
+                    stripeSessionId, paymentStatus, paymentIntentId);
 
-                // TODO: Call appointment/consultation service to mark consultation as "paid"
-                // e.g., restTemplate.patchForObject(appointmentServiceUrl + "/api/patient/appointments/" + paymentSession.getConsultationId() + "/status", ...)
+            paymentSessionRepository.findByStripeSessionId(stripeSessionId).ifPresent(paymentSession -> {
+                // Only mark as completed if payment actually succeeded
+                if ("paid".equalsIgnoreCase(paymentStatus)) {
+                    paymentSession.setStatus(PaymentStatus.COMPLETED);
+                    if (paymentIntentId != null && !paymentIntentId.isBlank()) {
+                        paymentSession.setStripePaymentIntentId(paymentIntentId);
+                    }
+                    paymentSessionRepository.save(paymentSession);
+                    log.info("Payment COMPLETED for consultation: {} with intent: {}",
+                            paymentSession.getConsultationId(), paymentIntentId);
+
+                    // Notify doctor service and send notification
+                    notifyDoctorServiceAboutPayment(paymentSession);
+                    sendPaymentNotificationToDoctor(paymentSession);
+                } else {
+                    log.warn("Webhook: payment_status is not 'paid', status={}", paymentStatus);
+                }
             });
+        }
+
+    }
+
+    private void notifyDoctorServiceAboutPayment(PaymentSession paymentSession) {
+        try {
+            String consultationId = paymentSession.getConsultationId();
+            if (consultationId != null && !consultationId.isBlank()) {
+                String url = doctorServiceUrl + "/api/internal/care-plans/" + consultationId + "/mark-paid";
+                try {
+                    restTemplate.postForEntity(url, null, String.class);
+                    log.info("Successfully notified doctor service to mark care plan paid: {}", consultationId);
+                } catch (Exception e) {
+                    log.warn("Doctor service notification failed for {}: {} - {}",
+                            consultationId, e.getClass().getSimpleName(), e.getMessage());
+                }
+            } else {
+                log.warn("Payment session {} has no consultationId, skipping doctor service notification", paymentSession.getId());
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error notifying doctor service about payment: {}", e.getMessage(), e);
+        }
+    }
+
+    private void sendPaymentNotificationToDoctor(PaymentSession paymentSession) {
+        try {
+            String doctorId = paymentSession.getDoctorId();
+            String patientId = paymentSession.getPatientId();
+            String paymentId = paymentSession.getId();
+            String consultationId = paymentSession.getConsultationId();
+            Long amountCents = paymentSession.getAmountCents();
+            String currency = paymentSession.getCurrency();
+
+            if (doctorId != null && !doctorId.isBlank()) {
+                // For webhook calls, we don't have a token, so we'll pass null
+                // The notification service should handle this gracefully
+                notificationServiceClient.sendPaymentNotification(
+                    patientId,
+                    doctorId,
+                    paymentId,
+                    consultationId,
+                    amountCents,
+                    currency,
+                    null
+                );
+                log.info("Successfully sent payment notification to doctor: {} for payment: {}", doctorId, paymentId);
+            } else {
+                log.warn("Payment session {} has no doctorId, skipping payment notification", paymentSession.getId());
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error sending payment notification to doctor: {}", e.getMessage(), e);
         }
     }
 
@@ -176,8 +296,10 @@ public class PaymentService {
         return PaymentResponse.builder()
                 .id(session.getId())
                 .stripeSessionId(session.getStripeSessionId())
+                .stripePaymentIntentId(session.getStripePaymentIntentId())
                 .consultationId(session.getConsultationId())
                 .patientId(session.getPatientId())
+                .doctorId(session.getDoctorId())
                 .customerEmail(session.getCustomerEmail())
                 .amountCents(session.getAmountCents())
                 .currency(session.getCurrency())

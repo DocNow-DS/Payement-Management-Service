@@ -87,6 +87,30 @@ public class PaymentController {
     }
 
     /**
+
+     * GET /api/v1/payments/session/{sessionId}
+     * Retrieves a payment session by Stripe checkout session ID.
+     */
+    @GetMapping("/session/{sessionId}")
+    public ResponseEntity<PaymentResponse> getPaymentBySession(@PathVariable String sessionId) {
+        PaymentResponse response = paymentService.getPaymentByStripeSessionId(sessionId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/v1/payments/session/{sessionId}/confirm
+     * Forces a sync with Stripe to confirm payment status after redirect.
+     */
+    @PostMapping("/session/{sessionId}/confirm")
+    public ResponseEntity<PaymentResponse> confirmPaymentBySession(@PathVariable String sessionId,
+                                                                   Authentication authentication) throws StripeException {
+        String patientId = authentication.getName();
+        PaymentResponse response = paymentService.confirmPaymentByStripeSessionId(sessionId, patientId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+
      * GET /api/v1/payments/patient/my-payments
      * Retrieves all payments for the authenticated patient.
      */
